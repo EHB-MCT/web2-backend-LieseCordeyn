@@ -45,27 +45,34 @@ app.get('/books', async (req, res) => {
 
 //return one book with id
 app.get('/book', async (req, res) => {
-    console.log(req.query)
-
+    //id is located in the query: red.query.id
     try {
-        //read data
-        let books = JSON.parse(await fs.readFile('data/books.json'));
+        await client.connect();
 
-        //find data
-        let book = books[req.query.id];
+        const coll = client.db('courseProject').collection('books');
+
+        const query = {
+            book_id: req.query.id
+        };
+
+
+        const book = await coll.findOne(query)
 
         if (book) {
             //send data
             res.status(200).send(book);
         } else {
-            res.status(400).send('boardgame could not be found with id:' + req.query.id);
+            res.status(400).send('book could not be found with id:' + req.query.id);
         }
 
 
 
     } catch (error) {
-        res.status(500).send('File could not be read! Try again later');
+        res.status(500).send('Data could not be read! Try again later');
+    } finally {
+        await client.close();
     }
+
 
 })
 
