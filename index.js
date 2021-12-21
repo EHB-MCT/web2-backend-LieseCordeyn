@@ -44,7 +44,7 @@ app.get('/books', async (req, res) => {
 })
 
 //return one book with id
-app.get('/book', async (req, res) => {
+app.get('/book:id', async (req, res) => {
     //id is located in the query: red.query.id
     try {
         await client.connect();
@@ -73,9 +73,6 @@ app.get('/book', async (req, res) => {
 
 app.post('/books', async (req, res) => {
     /* can only send data in the body */
-
-
-
     try {
         //connect with database
         await client.connect();
@@ -128,7 +125,7 @@ app.post('/books', async (req, res) => {
     }
 });
 
-app.delete('/books', async (req, res) => {
+app.delete('/books:id', async (req, res) => {
     if (!req.query.id) {
         res.status(400).send('bad result, missing id');
         return;
@@ -164,6 +161,35 @@ app.delete('/books', async (req, res) => {
             error: 'an error has occured',
             value: error
         });
+    } finally {
+        await client.close();
+    }
+})
+
+app.patch('/books:id', async (req, res) => {
+    if (!req.query.id) {
+        res.status(400).send('bad result, missing id');
+        return;
+    }
+
+    try {
+        await client.connect();
+        const coll = client.db('courseProject').collection('books');
+
+        const id = req.query.id;
+
+        const result = await coll.updateOne({
+            book_id: id
+        }, {
+            $set: req.body
+        }, {
+            upsert: true
+        })
+        console.log(result)
+        res.send(result);
+
+    } catch (err) {
+        console.log(err.message)
     } finally {
         await client.close();
     }
