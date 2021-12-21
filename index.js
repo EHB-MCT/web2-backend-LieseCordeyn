@@ -74,18 +74,24 @@ app.get('/book', async (req, res) => {
 app.post('/books', async (req, res) => {
     /* can only send data in the body */
 
+    if (!req.body.book_id || !req.body.author || !req.body.title || !req.body.started || !req.body.finished || !req.body.proces || !req.body.rating || !req.body.favorite_character || !req.body.favorite_chapter || !req.body.favorite_quote || req.body.to_be_read == null || req.body.wishlist == null || req.body.current_read == null) {
+        res.status(400).send('bad result, missing item');
+        return;
+    }
 
     try {
         //connect with database
         await client.connect();
         const coll = client.db('courseProject').collection('books');
 
-        
-      //validation for double challenges 
-      const myDoc = await coll.findOne({book_id: req.body.book_id});  // Find document 
-      if (myDoc){
-        res.status(400).send('Bad request: book already exists with id' + req.body.book_id);
-        return; //cause we don't want the code to continue
+
+        //validation for double challenges 
+        const myDoc = await coll.findOne({
+            book_id: req.body.book_id
+        }); // Find document 
+        if (myDoc) {
+            res.status(400).send('Bad request: book already exists with id ' + req.body.book_id);
+            return; //cause we don't want the code to continue
         }
 
         //save new challenge
@@ -104,7 +110,7 @@ app.post('/books', async (req, res) => {
             current_read: req.body.current_read,
             to_be_read: req.body.to_be_read
         }
-        
+
         //insert into database
         let insertResult = await coll.insertOne(newBook);
 
@@ -120,7 +126,7 @@ app.post('/books', async (req, res) => {
             error: 'an error has occured',
             value: error
         });
-    }finally{
+    } finally {
         await client.close();
     }
 });
