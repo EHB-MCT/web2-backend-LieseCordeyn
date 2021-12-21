@@ -74,10 +74,7 @@ app.get('/book', async (req, res) => {
 app.post('/books', async (req, res) => {
     /* can only send data in the body */
 
-    if (!req.body.book_id || !req.body.author || !req.body.title || !req.body.started || !req.body.finished || !req.body.proces || !req.body.rating || !req.body.favorite_character || !req.body.favorite_chapter || !req.body.favorite_quote || req.body.to_be_read == null || req.body.wishlist == null || req.body.current_read == null) {
-        res.status(400).send('bad result, missing item');
-        return;
-    }
+
 
     try {
         //connect with database
@@ -131,6 +128,46 @@ app.post('/books', async (req, res) => {
     }
 });
 
+app.delete('/books', async (req, res) => {
+    if (!req.query.id) {
+        res.status(400).send('bad result, missing id');
+        return;
+    }
+    try {
+        //read the file
+        //connect to the database
+        await client.connect();
+        const coll = client.db('courseProject').collection('books');
+
+        // Create a query for a challenge to delete
+        const query = {
+            book_id: req.query.id
+        };
+        const message = {
+            deleted: "Challenge deleted"
+        }
+
+        // Deleting the challenge
+        const result = await coll.deleteOne(query);
+        if (result.deletedCount === 1) {
+            res
+                .status(200)
+                .send(message);
+        } else {
+            res
+                .status(404)
+                .send("No documents matched the query. Deleted 0 documents.");
+        }
+    } catch (err) {
+        console.log('error');
+        res.status(500).send({
+            error: 'an error has occured',
+            value: error
+        });
+    } finally {
+        await client.close();
+    }
+})
 
 app.listen(port, () => {
     console.log(`Example app listening at http://localhost:${port}`)
