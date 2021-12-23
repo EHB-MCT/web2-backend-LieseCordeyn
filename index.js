@@ -71,6 +71,34 @@ app.get('/book:id', async (req, res) => {
 
 })
 
+//return one user with username
+app.get('/users:user', async (req, res) => {
+    //id is located in the query: red.query.id
+    try {
+        await client.connect();
+        const coll = client.db('courseProject').collection('users');
+
+        const query = {
+            user: req.query.user
+        };
+
+        const user = await coll.findOne(query)
+
+        if (user) {
+            //send data
+            res.status(200).send(user);
+        } else {
+            res.status(400).send('book could not be found with id:' + req.query.user);
+        }
+
+    } catch (error) {
+        res.status(500).send('Data could not be read! Try again later');
+    } finally {
+        await client.close();
+    }
+
+})
+
 app.post('/books', async (req, res) => {
     /* can only send data in the body */
     try {
